@@ -1,0 +1,35 @@
+    def change_env_var(self):
+        if self.action_combo.currentIndex() == 0:
+            try:
+                path = subprocess.check_output('path', shell=True)[5:-2]
+                pc = True if path[-1] == ';' else False
+                directory = self.path_edit.text()
+                if pc:
+                    path += '%s;' % directory
+                else:
+                    path += ';%s;' % directory
+                self.regedit('Path', path)
+                QMessageBox.information(self, unicode('Éxito', 'utf-8'),
+                                        unicode('Se ha añadido la variable al path.', 'utf-8'))
+            except:
+                pass
+        else:
+            try:
+                self.regedit(str(self.name_var_edit.text()), str(self.path_edit.text()))
+                QMessageBox.information(self, unicode('Éxito', 'utf-8'), 'Se ha añadido la variable de entorno.')
+            except:
+                pass
+        sys.exit()
+
+    def regedit(self, value, path):
+        sub_key = "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment"
+        hklm = HKEY_LOCAL_MACHINE
+        try:
+            key = OpenKey(hklm, sub_key, 0, KEY_ALL_ACCESS)
+            SetValueEx(key, value, 0, REG_EXPAND_SZ, path)
+            # QMessageBox.information(self, 'Exito', 'Se ha cambiado la variable.\nSe cerrara el explorer para que los cambios surtan efecto.')
+            # os.system('taskkill /IM explorer.exe /f')
+            # os.system('cmd /c explorer.exe')
+        except WindowsError:
+            QMessageBox.critical(self, 'Error', 'Acceso denegado. Eleve sus permisos.')
+            sys.exit()
